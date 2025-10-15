@@ -1,0 +1,388 @@
+<h1 id="guide-débutant-api-du-projet-laravel">Guide Débutant : API du
+Projet (Laravel)</h1>
+<blockquote>
+<p>Version du document : 1.0 — Date : 14/10/2025</p>
+</blockquote>
+<h2 id="table-des-matières">Table des matières</h2>
+<ol type="1">
+<li>Introduction générale</li>
+<li>Qu’est-ce qu’une API ? (Analogie du restaurant)</li>
+<li>Aperçu rapide de Laravel (le framework)</li>
+<li>Anatomie d’une requête HTTP (Méthodes, URL, Corps, En-têtes)</li>
+<li>Structure du dossier <code>api/</code> dans ce projet</li>
+<li>Les Routes : la carte routière de l’application</li>
+<li>Les Contrôleurs : les « chefs d’orchestre »</li>
+<li>Les Modèles Eloquent : représentation des tables (objets
+vivants)</li>
+<li>Les Migrations : l’historique de construction de la base de
+données</li>
+<li>Les Relations entre modèles (amis, posts, commentaires)</li>
+<li>Authentification avec Laravel Sanctum (jetons d’accès)</li>
+<li>Activation de compte et réinitialisation de mot de passe</li>
+<li>Gestion des Publications (Posts)</li>
+<li>Gestion des Commentaires</li>
+<li>Système d’Amitié et Blocage (Relations)</li>
+<li>Rôles admin et endpoints réservés</li>
+<li>Format des réponses JSON et bonnes pratiques</li>
+<li>Erreurs courantes et comment les éviter</li>
+<li>Comment tester les endpoints (exemples avec curl / Postman)</li>
+<li>Conversion de ce guide en PDF</li>
+<li>Glossaire récapitulatif (tous les termes définis)</li>
+<li>Prochaines pistes d’amélioration</li>
+</ol>
+<hr />
+<h2 id="introduction-générale">1. Introduction générale</h2>
+<p>Ce guide t’explique pas à pas la partie <strong>API</strong> de ton
+projet Laravel. Tu es débutant : donc chaque mot technique sera défini
+clairement la première fois. L’objectif : que tu sois autonome pour
+lire, comprendre et étendre l’API.</p>
+<h2 id="quest-ce-quune-api-analogie-du-restaurant">2. Qu’est-ce qu’une
+API ? (Analogie du restaurant)</h2>
+<p><strong>API</strong> veut dire « Application Programming Interface ».
+Imagine un <strong>restaurant</strong> : - Le client (ton application
+frontend, ou un utilisateur via Postman) demande un plat. - Le serveur
+(backend Laravel) reçoit la commande, la cuisine, et renvoie un plat. -
+L’API est le <strong>serveur + la carte</strong> qui explique “quels
+plats sont disponibles” et “comment les demander”.</p>
+<p>Concrètement, une API web échange des <strong>données</strong> via le
+protocole HTTP (le même que ton navigateur). Les réponses sont souvent
+au format <strong>JSON</strong> (JavaScript Object Notation) : un format
+texte simple pour représenter des objets comme
+<code>{ "name": "Alice" }</code>.</p>
+<h2 id="aperçu-rapide-de-laravel-le-framework">3. Aperçu rapide de
+Laravel (le framework)</h2>
+<p><strong>Laravel</strong> est un framework PHP qui fournit des outils
+déjà prêts : - Routage (déclarer des URLs et ce qu’elles font) -
+Contrôleurs (organiser le code métier) - Eloquent (interagir avec la
+base de données via des objets) - Migrations (versionner la structure de
+la base) - Middleware (filtres entre l’entrée et la sortie, ex :
+authentification) - Sécurité (CSRF, hashing de mot de passe,
+validations)</p>
+<p>Tu peux voir Laravel comme une <strong>boîte à outils</strong>
+organisée qui t’évite de « réinventer la roue ».</p>
+<h2 id="anatomie-dune-requête-http-méthodes-url-corps-en-têtes">4.
+Anatomie d’une requête HTTP (Méthodes, URL, Corps, En-têtes)</h2>
+<p>Une requête HTTP est composée de : - <strong>Méthode</strong> :
+<code>GET</code> (lire), <code>POST</code> (créer),
+<code>PUT/PATCH</code> (mettre à jour), <code>DELETE</code> (supprimer).
+- <strong>URL</strong> : l’adresse, ex: <code>/api/v1/posts</code>. -
+<strong>En-têtes (Headers)</strong> : métadonnées comme
+<code>Authorization: Bearer &lt;token&gt;</code>. - <strong>Corps
+(Body)</strong> : données envoyées (souvent JSON) lors des POST/PUT.</p>
+<p>Réponse HTTP : code de statut (<code>200 OK</code>,
+<code>404 Not Found</code>, <code>401 Unauthorized</code>) + corps JSON
++ parfois des en-têtes.</p>
+<h2 id="structure-du-dossier-api-dans-ce-projet">5. Structure du dossier
+<code>api/</code> dans ce projet</h2>
+<p>Principales zones : - <code>routes/api/v1/api.php</code> : définition
+des endpoints. - <code>app/Models/</code> : classes qui représentent les
+tables (User, Post, Commentaire, Relation). -
+<code>app/Http/Controllers/Api/v1/</code> : logique qui répond aux
+routes (non listé ici mais utilisé dans les routes). -
+<code>database/migrations/</code> : fichiers qui construisent/modifient
+les tables. - <code>app/Notifications/</code> &amp;
+<code>app/Mail/</code> : envoi d’emails / notifications. -
+<code>config/</code> : configuration (authentification, mail, sanctum,
+etc.).</p>
+<h2 id="les-routes-la-carte-routière-de-lapplication">6. Les Routes : la
+carte routière de l’application</h2>
+<p>Une <strong>Route</strong> associe une URL + une méthode HTTP à une
+action de contrôleur. Fichier : <code>routes/api/v1/api.php</code>.</p>
+<p>Exemple :</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode php"><code class="sourceCode php"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cn">R</span>oute::post(<span class="st">&#39;/login&#39;</span><span class="ot">,</span> [<span class="cn">A</span>uthController::<span class="kw">class</span><span class="ot">,</span> <span class="st">&#39;login&#39;</span>])<span class="ot">;</span></span></code></pre></div>
+<p>Ici, quand le client envoie POST <code>/api/v1/login</code>, Laravel
+appelle la méthode <code>login()</code> de
+<code>AuthController</code>.</p>
+<p>Le groupe <code>Route::middleware('auth:sanctum')</code> protège
+certaines routes : on exige un <strong>token</strong> valide (voir
+section 11).</p>
+<p>Endpoints publics (extraits) : - <code>GET /api/v1/</code> (Home) -
+<code>POST /api/v1/register</code> (inscription) -
+<code>POST /api/v1/login</code> (connexion) -
+<code>POST /api/v1/password/reset</code> (demande lien reset) -
+<code>GET /api/v1/posts</code> (liste des posts) - etc.</p>
+<p>Endpoints protégés (exemples) : - <code>GET /api/v1/me</code> (profil
+actuel) - <code>POST /api/v1/posts</code> (créer un post) -
+<code>GET /api/v1/post/{id}/like</code> (aimer un post) - Gestion d’amis
+: <code>POST /api/v1/friends/request</code> …</p>
+<h2 id="les-contrôleurs-les-chefs-dorchestre">7. Les Contrôleurs : les «
+chefs d’orchestre »</h2>
+<p>Un <strong>Contrôleur</strong> reçoit la requête, vérifie les
+données, appelle le modèle, et renvoie une réponse JSON. Il sépare la
+<strong>logique métier</strong> de la définition des routes. Même si les
+fichiers ne sont pas reproduits ici, ils suivent souvent ce schéma :</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode php"><code class="sourceCode php"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> <span class="cn">P</span>ostController {</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span> <span class="kw">function</span> getPosts() { <span class="co">/* récupérer tous les posts */</span> }</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">public</span> <span class="kw">function</span> createPost(<span class="cn">R</span>equest <span class="va">$request</span>) { <span class="co">/* valider puis enregistrer */</span> }</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>Analogie : le contrôleur est le <strong>chef d’orchestre</strong>,
+les modèles sont les <strong>musiciens</strong>, et la route est
+l’<strong>invitation au concert</strong>.</p>
+<h2
+id="les-modèles-eloquent-représentation-des-tables-objets-vivants">8.
+Les Modèles Eloquent : représentation des tables (objets vivants)</h2>
+<p>Un <strong>Modèle</strong> Eloquent est une classe PHP qui représente
+une <strong>table</strong> SQL. Exemple : <code>User</code> représente
+la table <code>users</code>.</p>
+<p>Dans <code>User.php</code> : - <code>$fillable</code> liste les
+colonnes qu’on peut remplir en masse (sécurité contre injection). -
+<code>$hidden</code> masque des champs dans les réponses JSON (ex:
+password). - <code>casts()</code> convertit automatiquement les types
+(ex: <code>dateOfBirth</code> devient un objet Date).</p>
+<p>Fonctions de relation (<code>posts()</code>,
+<code>commentaires()</code>) décrivent comment les tables sont liées
+(voir section 10).</p>
+<p><code>Post.php</code> inclut <code>$fillable</code> pour description,
+image, likes etc., et <code>$casts</code> pour convertir JSON -&gt;
+tableau PHP.</p>
+<p><code>Commentaire.php</code> : chaque commentaire appartient à un
+utilisateur et un post.</p>
+<p><code>Relation.php</code> : gère amitiés (statuts : pending,
+accepted, rejected, blocked).</p>
+<h2
+id="les-migrations-lhistorique-de-construction-de-la-base-de-données">9.
+Les Migrations : l’historique de construction de la base de données</h2>
+<p>Une <strong>Migration</strong> est un fichier qui décrit comment
+créer ou modifier une table. C’est comme un <strong>journal de
+construction</strong> du bâtiment « base de données ».</p>
+<p>Exemple (posts) :</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode php"><code class="sourceCode php"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cn">S</span>chema::create(<span class="st">&#39;posts&#39;</span><span class="ot">,</span> <span class="kw">function</span> (<span class="cn">B</span>lueprint <span class="va">$table</span>) {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">$table</span>-&gt;id()<span class="ot">;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="va">$table</span>-&gt;text(<span class="st">&#39;description&#39;</span>)<span class="ot">;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="va">$table</span>-&gt;integer(<span class="st">&#39;likes&#39;</span>)-&gt;<span class="cf">default</span>(<span class="dv">0</span>)<span class="ot">;</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>})<span class="ot">;</span></span></code></pre></div>
+<p>Chaque migration a deux méthodes : - <code>up()</code> : appliquer
+(créer/modifier) - <code>down()</code> : annuler (supprimer/retirer)</p>
+<h2 id="les-relations-entre-modèles-amis-posts-commentaires">10. Les
+Relations entre modèles (amis, posts, commentaires)</h2>
+<p>Types utilisés : - <code>hasMany</code> : un utilisateur a plusieurs
+posts. - <code>belongsTo</code> : un post appartient à un utilisateur. -
+<code>belongsToMany</code> : relation plusieurs-à-plusieurs (amis).</p>
+<p>Analogie : - <code>hasMany</code> = un auteur → plusieurs livres. -
+<code>belongsTo</code> = un livre → un auteur. -
+<code>belongsToMany</code> = étudiants &lt;-&gt; cours (chacun
+plusieurs).</p>
+<p>Dans <code>User</code> : - <code>friends()</code> +
+<code>friendsOfMine()</code> assemblent les amis dans les deux sens. -
+Méthodes utilitaires : <code>isFriendWith()</code>,
+<code>sendFriendRequestTo()</code> etc. encapsulent la logique.</p>
+<h2 id="authentification-avec-laravel-sanctum-jetons-daccès">11.
+Authentification avec Laravel Sanctum (jetons d’accès)</h2>
+<p><strong>Authentification</strong> = prouver « qui je suis ».
+<strong>Laravel Sanctum</strong> fournit un système simple de
+<strong>tokens</strong> (chaîne de caractères secrète) envoyés dans
+l’en-tête <code>Authorization: Bearer &lt;token&gt;</code>.</p>
+<p>Processus classique : 1. Tu <code>POST /api/v1/login</code> avec
+email + mot de passe. 2. Le serveur renvoie un <strong>token</strong>.
+3. Tu l’utilises pour les routes protégées (ex: création de post).</p>
+<p>Analogie : token = <strong>badge d’accès</strong> temporaire.</p>
+<h2 id="activation-de-compte-et-réinitialisation-de-mot-de-passe">12.
+Activation de compte et réinitialisation de mot de passe</h2>
+<p>L’utilisateur a un champ <code>is_active</code> (boolean) et un
+<code>activation_token</code>. Lors de l’inscription on peut envoyer un
+email avec un lien <code>/activate-account/{token}</code> pour
+activer.</p>
+<p>Réinitialisation : - <code>POST /api/v1/password/reset</code> =
+demander un lien. - <code>POST /api/v1/password/reset/confirm</code> =
+appliquer nouveau mot de passe avec le token reçu.</p>
+<h2 id="gestion-des-publications-posts">13. Gestion des Publications
+(Posts)</h2>
+<p>Modèle <code>Post</code> : colonnes principales -
+<code>description</code> : texte du post. - <code>image</code>,
+<code>link</code> : médias optionnels. - <code>likes</code> +
+<code>likes_users</code> (tableau JSON) : compteur + qui a aimé. -
+<code>shares</code> + <code>shares_users</code> : partages. -
+<code>status</code> : état (ex: publié, brouillon — dépend de ton
+usage).</p>
+<p>Endpoints clés : - <code>GET /api/v1/posts</code> : liste. -
+<code>POST /api/v1/posts</code> : créer (auth requis). -
+<code>GET /api/v1/post/{id}</code> : lire un post. -
+<code>PUT /api/v1/post/{id}</code> : modifier. -
+<code>DELETE /api/v1/post/{id}</code> : supprimer. -
+<code>GET /api/v1/post/{id}/like</code> / <code>unlike</code> /
+<code>share</code>: interactions.</p>
+<h2 id="gestion-des-commentaires">14. Gestion des Commentaires</h2>
+<p>Modèle <code>Commentaire</code> : - <code>contenu</code> : texte. -
+<code>status</code> : utile pour modération (ex: actif, masqué).
+Relations ajoutées par migration : <code>post_id</code>,
+<code>user_id</code>.</p>
+<p>Endpoints : - <code>POST /api/v1/posts/{postId}/comments</code> :
+créer commentaire. - <code>DELETE /api/v1/comments/{id}</code> :
+supprimer.</p>
+<h2 id="système-damitié-et-blocage-relations">15. Système d’Amitié et
+Blocage (Relations)</h2>
+<p>Table <code>relations</code> avec colonnes : - <code>user_id</code>
+(émetteur), <code>friend_id</code> (destinataire) - <code>status</code>
+: <code>pending</code>, <code>accepted</code>, <code>rejected</code>,
+<code>blocked</code></p>
+<p>Logique : - Envoyer demande : crée une ligne <code>pending</code>. -
+Accepter : passe à <code>accepted</code>. - Bloquer : passe à
+<code>blocked</code> + supprime toute autre amitié existante.</p>
+<p>Endpoints : - <code>POST /api/v1/friends/request</code> -
+<code>POST /api/v1/friends/accept/{friendshipId}</code> -
+<code>POST /api/v1/friends/reject/{friendshipId}</code> -
+<code>GET /api/v1/friends</code> (liste acceptés) -
+<code>GET /api/v1/friends/pending</code> (en attente reçus) -
+<code>GET /api/v1/friends/sending</code> (demandes envoyées) -
+<code>DELETE /api/v1/friends/{friendId}</code> (retirer ami) -
+<code>POST /api/v1/users/{userId}/block</code> /
+<code>DELETE /api/v1/users/{userId}/unblock</code></p>
+<h2 id="rôles-admin-et-endpoints-réservés">16. Rôles admin et endpoints
+réservés</h2>
+<p>Routes préfixées <code>/api/v1/admin/*</code> : -
+<code>GET /admin/users</code> - <code>GET /admin/posts</code> - Stats :
+<code>GET /admin/stats</code></p>
+<p>Ces routes supposent un <strong>rôle</strong> élevé
+(<code>role</code> dans <code>users</code>). Tu peux ajouter un
+middleware custom qui vérifie
+<code>auth()-&gt;user()-&gt;role === 'ADM'</code> par exemple.</p>
+<h2 id="format-des-réponses-json-et-bonnes-pratiques">17. Format des
+réponses JSON et bonnes pratiques</h2>
+<p>Bonnes pratiques : - Toujours renvoyer une structure cohérente :</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="er">...</span> <span class="fu">},</span> <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Succès&quot;</span><span class="fu">,</span> <span class="dt">&quot;errors&quot;</span><span class="fu">:</span> <span class="kw">null</span> <span class="fu">}</span></span></code></pre></div>
+<ul>
+<li>En cas d’erreur validation : HTTP 422 avec détails.</li>
+<li>Éviter de renvoyer le mot de passe, tokens.</li>
+<li>Utiliser codes HTTP adaptés (201 pour création, 404 si non trouvé,
+401 si non authentifié).</li>
+</ul>
+<h2 id="erreurs-courantes-et-comment-les-éviter">18. Erreurs courantes
+et comment les éviter</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 37%" />
+<col style="width: 25%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Problème</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>401 Unauthorized</td>
+<td>Token manquant ou expiré</td>
+<td>Refaire login et inclure header Authorization</td>
+</tr>
+<tr class="even">
+<td>404 Not Found</td>
+<td>Mauvaise URL ou ID inexistant</td>
+<td>Vérifier endpoint / ID dans base</td>
+</tr>
+<tr class="odd">
+<td>422 Unprocessable Entity</td>
+<td>Validation échouée</td>
+<td>Vérifier champs obligatoires</td>
+</tr>
+<tr class="even">
+<td>500 Internal Server Error</td>
+<td>Exception non gérée</td>
+<td>Lire logs <code>storage/logs/laravel.log</code></td>
+</tr>
+<tr class="odd">
+<td>419 Page Expired</td>
+<td>Token CSRF sur endpoints web</td>
+<td>Pour API, utiliser routes dans <code>api.php</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="comment-tester-les-endpoints-exemples-avec-curl-postman">19.
+Comment tester les endpoints (exemples avec curl / Postman)</h2>
+<p><code>curl</code> est un outil ligne de commande pour envoyer des
+requêtes. Exemples :</p>
+<p>Connexion :</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/v1/login <span class="dt">\</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;email&quot;:&quot;test@example.com&quot;,&quot;password&quot;:&quot;secret&quot;}&#39;</span></span></code></pre></div>
+<p>Supposons réponse : <code>{ "token": "ABC123" }</code>.</p>
+<p>Récupérer profil :</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer ABC123&quot;</span> http://localhost:8000/api/v1/me</span></code></pre></div>
+<p>Créer un post :</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST http://localhost:8000/api/v1/posts <span class="dt">\</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Authorization: Bearer ABC123&quot;</span> <span class="dt">\</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">-H</span> <span class="st">&quot;Content-Type: application/json&quot;</span> <span class="dt">\</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">-d</span> <span class="st">&#39;{&quot;description&quot;:&quot;Mon premier post&quot;}&#39;</span></span></code></pre></div>
+<h2 id="conversion-de-ce-guide-en-pdf">20. Conversion de ce guide en
+PDF</h2>
+<p>Tu peux convertir ce fichier Markdown en PDF avec
+<strong>pandoc</strong> (outil de conversion de documents). Installation
+(Debian/Ubuntu) :</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get update <span class="kw">&amp;&amp;</span> <span class="fu">sudo</span> apt-get install <span class="at">-y</span> pandoc texlive-latex-recommended</span></code></pre></div>
+<p>Puis :</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> docs</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pandoc</span> guide_api_debutant.md <span class="at">-o</span> guide_api_debutant.pdf</span></code></pre></div>
+<p>Si pas de LaTeX, tu peux sortir en HTML d’abord :</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pandoc</span> guide_api_debutant.md <span class="at">-o</span> guide_api_debutant.html</span></code></pre></div>
+<h2 id="glossaire-récapitulatif-tous-les-termes-définis">21. Glossaire
+récapitulatif (tous les termes définis)</h2>
+<ul>
+<li>API : interface pour communiquer entre programmes (restaurant :
+serveur + carte).</li>
+<li>JSON : format texte clé/valeur pour données.</li>
+<li>Route : lien entre une URL et une fonction de contrôleur.</li>
+<li>Contrôleur : classe qui traite la requête et renvoie une
+réponse.</li>
+<li>Modèle (Eloquent) : objet représentant une table SQL.</li>
+<li>Migration : script qui crée/modifie une table.</li>
+<li>Middleware : couche intermédiaire filtrant la requête (ex:
+auth).</li>
+<li>Token : chaîne secrète prouvant l’identité (badge).</li>
+<li>Sanctum : système de gestion de tokens perso dans Laravel.</li>
+<li>Relation (hasMany, belongsTo…) : lien logique entre tables.</li>
+<li>CRUD : Create, Read, Update, Delete (opérations de base).</li>
+<li>422 : code HTTP pour erreur de validation.</li>
+<li>404 : code HTTP ressource absente.</li>
+<li>401 : code HTTP identité non prouvée.</li>
+<li>Seeders : scripts pour remplir la base avec des données de départ
+(non détaillés ici mais présents dans
+<code>database/seeders</code>).</li>
+<li>Factory : outil pour générer des objets de test.</li>
+<li>Casting : conversion automatique de types (ex: date).</li>
+</ul>
+<h2 id="prochaines-pistes-damélioration">22. Prochaines pistes
+d’amélioration</h2>
+<ul>
+<li>Ajouter des tests automatisés pour chaque endpoint (Feature
+tests).</li>
+<li>Ajouter validation (FormRequest) pour sécuriser input.</li>
+<li>Documenter l’API avec Swagger/OpenAPI (déjà amorcé via annotations
+<code>@OA</code>).</li>
+<li>Ajouter pagination (<code>?page=1</code>) sur liste de posts /
+users.</li>
+<li>Limiter nombre de likes / interactions abusives (rate
+limiting).</li>
+<li>Normaliser structure de réponse (créer une helper Response).</li>
+<li>Ajouter rôle et permissions robustes (package
+spatie/laravel-permission).</li>
+</ul>
+<hr />
+<h2 id="annexe-problèmes-unicode-lors-de-la-conversion-pdf">Annexe :
+Problèmes Unicode lors de la conversion PDF</h2>
+<p>Si tu obtiens une erreur du type “Unicode character (U+2194) not set
+up for use with LaTeX” c’est que <code>pdflatex</code> ne gère pas
+directement certains symboles (flèches, émojis). Solutions : 1.
+Remplacer les symboles par ASCII (ex: ↔︎ devient &lt;-&gt;, → devient
+-&gt;, émoji ☕ devient (cafe)). 2. Utiliser <code>xelatex</code> ou
+<code>lualatex</code> avec pandoc qui gèrent Unicode :</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pandoc</span> guide_api_debutant.md <span class="at">-o</span> guide_api_debutant.pdf <span class="at">--pdf-engine</span><span class="op">=</span>xelatex</span></code></pre></div>
+<ol start="3" type="1">
+<li>Ou exporter en HTML puis imprimer en PDF via navigateur.</li>
+</ol>
+<p>Script d’aide (créé séparément) utilisera un fallback.</p>
+<p>Fin du guide. Tu peux maintenant explorer et modifier l’API avec plus
+de confiance.</p>
