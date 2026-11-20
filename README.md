@@ -1,38 +1,49 @@
 # YOWL
 
-This template should help get you started developing with Vue 3 in Vite.
+Réseau social web : publications, commentaires, likes, partages et gestion d'amis, avec un espace
+d'administration. Ce dépôt contient le **frontend** (Vue 3) ; il consomme une API REST externe.
 
-## Recommended IDE Setup
+> Projet réalisé à Epitech.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## Fonctionnalités
 
-## Recommended Browser Setup
+- **Comptes** : inscription, connexion, vérification d'e-mail, réinitialisation du mot de passe ;
+  routes protégées (connecté / invité / administrateur).
+- **Fil d'actualité** : créer, modifier et supprimer un post, avec image (envoi vers Cloudinary) et lien.
+- **Interactions** : like / unlike, partage, commentaires (ajout et suppression).
+- **Recherche** : par mot-clé et filtre par hashtag, bloc « Tendances ».
+- **Amis** : envoyer, accepter ou refuser une demande, voir les demandes envoyées, retirer un ami.
+- **Profil** : édition des informations personnelles.
+- **Administration** : liste des utilisateurs, modération des posts et commentaires, tableau de bord
+  statistique (engagement, utilisateurs actifs, posts récents, top utilisateurs).
+- Interface responsive avec navigation mobile dédiée.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## Stack
 
-## Customize configuration
+Vue 3 · Vite · Vue Router · Pinia (+ persistance) · Axios · Tailwind CSS · Cloudinary ·
+ESLint / oxlint · Docker · GitHub Actions (installation + build à chaque push sur `main`).
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## Lancer le projet
 
-## Project Setup
-
-```sh
+```bash
+cp env.example .env      # VITE_API_URL, VITE_API_KEY
 npm install
+npm run dev              # http://localhost:5173
+npm run build            # build de production dans dist/
 ```
 
-### Compile and Hot-Reload for Development
+Avec Docker :
 
-```sh
-npm run dev
+```bash
+docker build -t yowl . && docker run -p 5173:5173 yowl
 ```
 
-### Compile and Minify for Production
+## Structure
 
-```sh
-npm run build
+```
+src/views/       pages (accueil, amis, profil, connexion, inscription, admin…)
+src/components/  cartes de post, d'utilisateur et d'ami, barres latérales, navigation
+src/stores/      PostsStore et UserStore (Pinia)
+src/services/    client API (jeton Bearer) et envoi d'images
+src/router/      routes et gardes d'accès
 ```
